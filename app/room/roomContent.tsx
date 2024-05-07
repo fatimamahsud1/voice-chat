@@ -1,11 +1,22 @@
-"use client";
-
-import { useEffect, useState, useRef } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
 
-export default function RoomContent() {
+
+export default function RoomPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RoomContent />
+    </Suspense>
+  );
+}
+
+function RoomContent() {
   const searchParams = useSearchParams();
   const name = searchParams.get('name');
+
+"use client";
+
   const [users, setUsers] = useState<string[]>([]);
   const [muted, setMuted] = useState(false);
   const [speaking, setSpeaking] = useState(false);
