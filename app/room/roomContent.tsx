@@ -1,22 +1,11 @@
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
-
-
-export default function RoomPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <RoomContent />
-    </Suspense>
-  );
-}
-
-function RoomContent() {
-  const searchParams = useSearchParams();
-  const name = searchParams.get('name');
-
 "use client";
 
+import { useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+
+export default function RoomPage() {
+  const searchParams = useSearchParams();
+  const name = searchParams.get('name');
   const [users, setUsers] = useState<string[]>([]);
   const [muted, setMuted] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -32,7 +21,7 @@ function RoomContent() {
   useEffect(() => {
     if (!name) return;
 
-    ws.current = new WebSocket(`wss://your-go-backend.fly.dev/room?name=${name}`);
+    ws.current = new WebSocket(`ws://localhost:8080/room?name=${name}`);
 
     ws.current.onmessage = (event) => {
       const message = JSON.parse(event.data);
@@ -66,17 +55,17 @@ function RoomContent() {
       processorRef.current.connect(context.current.destination);
 
       // Set up MediaRecorder for recording
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/wav' });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       mediaRecorder.ondataavailable = (e) => {
         setRecordedChunks((prev) => [...prev, e.data]);
       };
       mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: 'audio/wav' });
+        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
         const formData = new FormData();
-        formData.append("audio", blob, `${name}-recording.wav`);
-        fetch("https://your-go-backend.fly.dev/record", {
-          method: "POST",
-          body: formData,
+        formData.append("audio", blob, `${name}-recording.webm`);
+        fetch("http://localhost:8080/record", {
+            method: "POST",
+            body: formData,
         }).then(() => setRecordedChunks([]));
       };
       mediaRecorderRef.current = mediaRecorder;
@@ -93,7 +82,7 @@ function RoomContent() {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-  }, [name, speaking, muted]);
+  }, [name, speaking, muted, recordedChunks]);
 
   useEffect(() => {
     if (audioBuffers.length > 0) {

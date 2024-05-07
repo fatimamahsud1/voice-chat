@@ -1,14 +1,12 @@
-package handler
+package main
 
 import (
     "encoding/json"
     "net/http"
-    "os"
     "sync"
 
     "github.com/gin-gonic/gin"
     "github.com/gorilla/websocket"
-    "github.com/youpy/go-wav"
 )
 
 type Message struct {
@@ -27,9 +25,8 @@ var (
     roomsMu sync.Mutex
 )
 
-func Handler(w http.ResponseWriter, r *http.Request) {
-    gin.SetMode(gin.ReleaseMode)
-    router := gin.New()
+func main() {
+    router := gin.Default()
 
     router.GET("/room", func(c *gin.Context) {
         name := c.Query("name")
@@ -72,21 +69,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
     router.POST("/record", func(c *gin.Context) {
         file, _ := c.FormFile("audio")
-        f, _ := file.Open()
-        defer f.Close()
-
-        outputFile, _ := os.Create(file.Filename)
-        defer outputFile.Close()
-
-        writer := wav.NewWriter(outputFile, uint32(file.Size/2), 1, 44100, 16)
-        wavBuffer := make([]byte, file.Size)
-        f.Read(wavBuffer)
-        writer.Write(wavBuffer)
-
+        c.SaveUploadedFile(file, file.Filename)
         c.JSON(http.StatusOK, gin.H{"status": "success"})
     })
 
-    router.ServeHTTP(w, r)
+    router.Run(":8080")
 }
 
 func broadcast(roomName string, message Message, sender *websocket.Conn) {
