@@ -1,5 +1,6 @@
 // next.config.js
-module.exports = {
+// next.config.mjs
+export default {
     output: 'standalone',
   };
   
