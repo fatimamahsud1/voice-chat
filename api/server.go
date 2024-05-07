@@ -78,10 +78,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
         outputFile, _ := os.Create(file.Filename)
         defer outputFile.Close()
 
-        writer := wav.NewWriter(outputFile, uint32(file.Size()/2), 1, 44100, 16)
-        wavBuffer := make([]byte, file.Size())
+        writer := wav.NewWriter(outputFile, uint32(file.Size/2), 1, 44100, 16)
+        wavBuffer := make([]byte, file.Size)
         f.Read(wavBuffer)
-        writer.WriteFrames(wavBuffer)
+        writer.Write(wavBuffer)
 
         c.JSON(http.StatusOK, gin.H{"status": "success"})
     })
